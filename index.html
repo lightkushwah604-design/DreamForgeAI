@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamForge AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h1>🎨 DreamForge AI</h1>
+<p>Create AI Images from Text</p>
+
+<textarea id="prompt" placeholder="Example: A futuristic city at sunset"></textarea>
+<label>Negative Prompt</label>
+<label>📷 Upload Image</label>
+<input type="file" id="imageInput" accept="image/*">
+<button id="randomPromptBtn">🎲 Random Prompt</button>
+<textarea
+    id="negativePrompt"
+    placeholder="Example: blurry, low quality, watermark">
+</textarea>
+<select id="style">
+    <option value="realistic">Realistic</option>
+    <option value="anime">Anime</option>
+    <option value="3d">3D Render</option>
+    <option value="cyberpunk">Cyberpunk</option>
+    <option value="fantasy">Fantasy</option>
+</select>
+
+<select id="size">
+    <option value="512x512">512 × 512</option>
+    <option value="768x768">768 × 768</option>
+    <option value="1024x1024" selected>1024 × 1024</option>
+</select>
+
+<button id="generateBtn">🚀 Generate Image</button>
+
+<div id="loading" style="display:none;">
+    ⏳ Generating Image...
+</div>
+<div id="result" style="display:none;">
+    <img id="resultImage" alt="Generated Image">
+    <button id="downloadBtn">📥 Download</button>
+</div>
+
+<h2>🖼 Gallery</h2>
+<button id="clearGalleryBtn">🗑 Clear Gallery</button>
+<div id="gallery"></div>
+
+<h2>⭐ Favorites</h2>
+<button id="clearFavoritesBtn">🗑 Clear Favorites</button>
+<div id="favorites"></div>
+
+<h3>History</h3>
+<div id="history"></div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
