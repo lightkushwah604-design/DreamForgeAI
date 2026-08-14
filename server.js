@@ -24,8 +24,29 @@ const { prompt, negative_prompt } = req.body;
       .split("x")
       .map(Number);
 
-    const response = await axios.post(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`,
+     const formData = new FormData();
+
+formData.append("prompt", prompt);
+
+if (req.file) {
+  formData.append("image", req.file.buffer, {
+    filename: req.file.originalname,
+    contentType: req.file.mimetype,
+  });
+}
+
+const response = await axios.post(
+  `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/runwayml/stable-diffusion-v1-5-img2img`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${API_TOKEN}`,
+      ...formData.getHeaders(),
+    },
+    responseType: "arraybuffer",
+  }
+);
+
 {
   prompt: prompt,
   negative_prompt: negative_prompt

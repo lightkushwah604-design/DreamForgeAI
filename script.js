@@ -1,3 +1,4 @@
+;
 const prompt = document.getElementById("prompt");
 const negativePrompt = document.getElementById("negativePrompt");
 const style = document.getElementById("style");
@@ -46,22 +47,22 @@ generateBtn.onclick = async () => {
     loading.style.display = "block";
     result.style.display = "none";
 
-    try {
+
+try {
 
 const response = await fetch("https://dreamforgeai-3.onrender.com/generate", {
 
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                prompt: prompt.value,
-                negative_prompt: negativePrompt.value,
-                style: style.value,
-                size: size.value
-            })
-        });
-
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        prompt: prompt.value,
+        negative_prompt: negativePrompt.value,
+        style: style.value,
+        size: size.value
+    })
+});
         if (!response.ok) {
             throw new Error(await response.text());
         }
