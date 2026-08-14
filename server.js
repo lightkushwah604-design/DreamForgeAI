@@ -36,14 +36,19 @@ if (req.file) {
 }
 
 const response = await axios.post(
-  `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/runwayml/stable-diffusion-v1-5-img2img`,
-  formData,
+  `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run`,
+  {
+    model: "black-forest-labs/flux-2-flex",
+    input: {
+      prompt: prompt
+    }
+  },
   {
     headers: {
       Authorization: `Bearer ${API_TOKEN}`,
-      ...formData.getHeaders(),
+      "Content-Type": "application/json"
     },
-    responseType: "arraybuffer",
+    responseType: "arraybuffer"
   }
 );
 
