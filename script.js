@@ -1,4 +1,3 @@
-;
 const prompt = document.getElementById("prompt");
 const negativePrompt = document.getElementById("negativePrompt");
 const style = document.getElementById("style");
@@ -32,8 +31,7 @@ const randomPrompts = [
 ];
 
 randomPromptBtn.onclick = () => {
-    prompt.value =
-        randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
+    prompt.value = randomPrompts[Math.floor(Math.random() * randomPrompts.length)];
 };
 
 generateBtn.onclick = async () => {
@@ -47,34 +45,30 @@ generateBtn.onclick = async () => {
     loading.style.display = "block";
     result.style.display = "none";
 
+    try {
 
-try {
+        const formData = new FormData();
 
-const response = await fetch("https://dreamforgeai-3.onrender.com/generate", {
+        formData.append("prompt", prompt.value);
 
-    method: "POST",
-      "Content-Type": "application/json"
-},
-body: JSON.stringify({
-  prompt: prompt.value,
-  negative_prompt: negativePrompt.value,
-  style: style.value,
-  size: size.value
+        if (negativePrompt.value)
+            formData.append("negative_prompt", negativePrompt.value);
 
-const formData = new FormData();
+        if (style.value)
+            formData.append("style", style.value);
 
-formData.append("prompt", prompt.value);
+        if (size.value)
+            formData.append("size", size.value);
 
-const imageInput = document.getElementById("imageInput");
+        if (imageInput.files.length > 0) {
+            formData.append("image", imageInput.files[0]);
+        }
 
-if (imageInput.files.length > 0) {
-    formData.append("image", imageInput.files[0]);
-}
+        const response = await fetch("https://dreamforgeai-3.onrender.com/generate", {
+            method: "POST",
+            body: formData
+        });
 
-const response = await fetch("https://dreamforgeai-3.onrender.com/generate", {
-    method: "POST",
-    body: formData
-});
         if (!response.ok) {
             throw new Error(await response.text());
         }
@@ -128,34 +122,34 @@ function saveGallery(img) {
     data.unshift(img);
 
     if (data.length > 20)
-        data = data.slice(0,20);
+        data = data.slice(0, 20);
 
-    localStorage.setItem("gallery",JSON.stringify(data));
+    localStorage.setItem("gallery", JSON.stringify(data));
 
     loadGallery();
 
 }
 
-function loadGallery(){
+function loadGallery() {
 
-    gallery.innerHTML="";
+    gallery.innerHTML = "";
 
-    let data=JSON.parse(localStorage.getItem("gallery")||"[]");
+    let data = JSON.parse(localStorage.getItem("gallery") || "[]");
 
-    data.forEach(img=>{
+    data.forEach(img => {
 
-        const box=document.createElement("div");
+        const box = document.createElement("div");
 
-        const image=document.createElement("img");
+        const image = document.createElement("img");
 
-        image.src=img;
-        image.style.width="100%";
+        image.src = img;
+        image.style.width = "100%";
 
-        const fav=document.createElement("button");
+        const fav = document.createElement("button");
 
-        fav.innerText="⭐ Favorite";
+        fav.innerText = "⭐ Favorite";
 
-        fav.onclick=()=>saveFavorite(img);
+        fav.onclick = () => saveFavorite(img);
 
         box.appendChild(image);
         box.appendChild(fav);
@@ -165,32 +159,31 @@ function loadGallery(){
     });
 
 }
+function saveFavorite(img) {
 
-function saveFavorite(img){
+    let data = JSON.parse(localStorage.getItem("favorites") || "[]");
 
-    let data=JSON.parse(localStorage.getItem("favorites")||"[]");
-
-    if(!data.includes(img))
+    if (!data.includes(img))
         data.unshift(img);
 
-    localStorage.setItem("favorites",JSON.stringify(data));
+    localStorage.setItem("favorites", JSON.stringify(data));
 
     loadFavorites();
 
 }
 
-function loadFavorites(){
+function loadFavorites() {
 
-    favorites.innerHTML="";
+    favorites.innerHTML = "";
 
-    let data=JSON.parse(localStorage.getItem("favorites")||"[]");
+    let data = JSON.parse(localStorage.getItem("favorites") || "[]");
 
-    data.forEach(img=>{
+    data.forEach(img => {
 
-        const image=document.createElement("img");
+        const image = document.createElement("img");
 
-        image.src=img;
-        image.style.width="100%";
+        image.src = img;
+        image.style.width = "100%";
 
         favorites.appendChild(image);
 
@@ -198,32 +191,32 @@ function loadFavorites(){
 
 }
 
-function saveHistory(text){
+function saveHistory(text) {
 
-    let data=JSON.parse(localStorage.getItem("history")||"[]");
+    let data = JSON.parse(localStorage.getItem("history") || "[]");
 
     data.unshift(text);
 
-    if(data.length>15)
-        data=data.slice(0,15);
+    if (data.length > 15)
+        data = data.slice(0, 15);
 
-    localStorage.setItem("history",JSON.stringify(data));
+    localStorage.setItem("history", JSON.stringify(data));
 
     loadHistory();
 
 }
 
-function loadHistory(){
+function loadHistory() {
 
-    historyDiv.innerHTML="";
+    historyDiv.innerHTML = "";
 
-    let data=JSON.parse(localStorage.getItem("history")||"[]");
+    let data = JSON.parse(localStorage.getItem("history") || "[]");
 
-    data.forEach(t=>{
+    data.forEach(t => {
 
-        const p=document.createElement("p");
+        const p = document.createElement("p");
 
-        p.innerText=t;
+        p.innerText = t;
 
         historyDiv.appendChild(p);
 
@@ -231,21 +224,21 @@ function loadHistory(){
 
 }
 
-clearGalleryBtn.onclick=()=>{
+clearGalleryBtn.onclick = () => {
 
     localStorage.removeItem("gallery");
 
     loadGallery();
 
-}
+};
 
-clearFavoritesBtn.onclick=()=>{
+clearFavoritesBtn.onclick = () => {
 
     localStorage.removeItem("favorites");
 
     loadFavorites();
 
-}
+};
 
 loadGallery();
 loadFavorites();
