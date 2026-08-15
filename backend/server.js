@@ -34,7 +34,7 @@ app.post("/generate", upload.single("image"), async (req, res) => {
     if (req.file) {
       // Image-to-Image
       response = await axios.post(
-        "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-refiner-1.0"
+        "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-refiner-1.0",
         req.file.buffer,
         {
           params: {
@@ -50,7 +50,7 @@ app.post("/generate", upload.single("image"), async (req, res) => {
     } else {
       // Text-to-Image
       response = await axios.post(
-        "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev"
+        "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev",
         {
           inputs: prompt,
         },
