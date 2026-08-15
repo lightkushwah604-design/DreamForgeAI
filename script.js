@@ -53,15 +53,27 @@ try {
 const response = await fetch("https://dreamforgeai-3.onrender.com/generate", {
 
     method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        prompt: prompt.value,
-        negative_prompt: negativePrompt.value,
-        style: style.value,
-        size: size.value
-    })
+      "Content-Type": "application/json"
+},
+body: JSON.stringify({
+  prompt: prompt.value,
+  negative_prompt: negativePrompt.value,
+  style: style.value,
+  size: size.value
+
+const formData = new FormData();
+
+formData.append("prompt", prompt.value);
+
+const imageInput = document.getElementById("imageInput");
+
+if (imageInput.files.length > 0) {
+    formData.append("image", imageInput.files[0]);
+}
+
+const response = await fetch("https://dreamforgeai-3.onrender.com/generate", {
+    method: "POST",
+    body: formData
 });
         if (!response.ok) {
             throw new Error(await response.text());

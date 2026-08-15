@@ -32,19 +32,25 @@ if (image) {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
-    const response = await axios.post(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`,
-      {
-        prompt: prompt
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        responseType: "arraybuffer"
-      }
-    );
+const payload = {
+  prompt: prompt
+};
+
+if (image) {
+  payload.image = image.buffer.toString("base64");
+}
+
+const response = await axios.post(
+  `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`,
+  payload,
+  {
+    headers: {
+      Authorization: `Bearer ${API_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    responseType: "arraybuffer"
+  }
+);
 
     res.setHeader("Content-Type", "image/png");
     res.send(response.data);
