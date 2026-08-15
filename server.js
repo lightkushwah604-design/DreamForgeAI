@@ -35,13 +35,40 @@ if (req.file) {
   });
 }
 
+const input = {
+  prompt: prompt,
+  output_format: "png"
+};
+
+if (req.file) {
+  const mime = req.file.mimetype;
+  const base64 = req.file.buffer.toString("base64");
+
+  input.input_images = [
+    `data:${mime};base64,${base64}`
+  ];
+}
+
+
+const input = {
+  prompt: prompt,
+  output_format: "png"
+};
+
+if (image) {
+  const mime = image.mimetype;
+  const base64 = image.buffer.toString("base64");
+
+  input.input_images = [
+    `data:${mime};base64,${base64}`
+  ];
+}
+
 const response = await axios.post(
   `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run`,
   {
     model: "black-forest-labs/flux-2-flex",
-    input: {
-      prompt: prompt
-    }
+    input
   },
   {
     headers: {
