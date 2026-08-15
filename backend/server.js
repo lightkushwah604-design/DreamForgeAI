@@ -1,70 +1,81 @@
-const FormData = require("form-data");
-const multer = require("multer");
 require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
 const axios = require("axios");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
-const upload = multer({ storage: multer.memoryStorage() });
 
-const ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const API_TOKEN = process.env.CF_API_TOKEN;
+const upload = multer({
+  storage: multer.memoryStorage(),
+});
+
+const HF_TOKEN = process.env.HF_TOKEN;
 
 app.get("/", (req, res) => {
-  res.json({ status: "DreamForge AI Backend Running" });
+  res.json({ status: "DreamForge AI Backend Running (Hugging Face)" });
 });
 
 app.post("/generate", upload.single("image"), async (req, res) => {
   try {
-    const { prompt } = req.body;
-const image = req.file;
-console.log("Prompt:", prompt);
+    const prompt = req.body.prompt;
 
-if (image) {
-    console.log("Image uploaded:", image.originalname);
-}
     if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
+      return res.status(400).json({
+        error: "Prompt is required",
+      });
     }
 
-const payload = {
-  prompt: prompt
-};
+    let response;
 
-if (image) {
-  payload.image = image.buffer.toString("base64");
-}
-
-const response = await axios.post(
-  `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`,
-  payload,
-  {
-    headers: {
-      Authorization: `Bearer ${API_TOKEN}`,
-      "Content-Type": "application/json"
-    },
-    responseType: "arraybuffer"
-  }
-);
+    if (req.file) {
+      // Image-to-Image
+      response = await axios.post(
+        "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0",
+        req.file.buffer,
+        {
+          params: {
+            prompt: prompt,
+          },
+          headers: {
+            Authorization: `Bearer ${HF_TOKEN}`,
+            "Content-Type": req.file.mimetype,
+          },
+          responseType: "arraybuffer",
+        }
+      );
+    } else {
+      // Text-to-Image
+      response = await axios.post(
+        "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev",
+        {
+          inputs: prompt,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${HF_TOKEN}`,
+          },
+          responseType: "arraybuffer",
+        }
+      );
+    }
 
     res.setHeader("Content-Type", "image/png");
     res.send(response.data);
-
   } catch (err) {
-    console.log(err.response?.data?.toString() || err.message);
+    console.error(err.response?.data || err.message);
+
     res.status(500).json({
-      error: err.response?.data?.toString() || err.message
+      error: err.response?.data?.toString() || err.message,
     });
   }
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
