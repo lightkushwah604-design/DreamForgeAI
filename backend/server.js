@@ -1,9 +1,10 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-const express = require("express");
-const cors = require("cors");
-const multer = require("multer");
-const axios = require("axios");
+import express from "express";
+import cors from "cors";
+import multer from "multer";
+import Replicate from "replicate";
 
 const app = express();
 
@@ -14,10 +15,14 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
+const replicate = new Replicate({
+  auth: process.env.REPLICATE_API_TOKEN,
+});
 
 app.get("/", (req, res) => {
-  res.json({ status: "DreamForge AI Backend Running (Replicate)" });
+  res.json({
+    status: "DreamForge AI Backend Running (Replicate SDK)",
+  });
 });
 
 app.post("/generate", upload.single("image"), async (req, res) => {
@@ -30,86 +35,51 @@ app.post("/generate", upload.single("image"), async (req, res) => {
       });
     }
 
-    let prediction;
+    let output;
 
     if (req.file) {
       // Image-to-Image (FLUX Kontext Pro)
-      prediction = await axios.post(
-        "https://api.replicate.com/v1/predictions",
+      output = await replicate.run(
+        "black-forest-labs/flux-kontext-pro",
         {
-          model: "black-forest-labs/flux-kontext-pro",
           input: {
             prompt: prompt,
             input_image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
             output_format: "jpg",
           },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
         }
       );
     } else {
       // Text-to-Image (FLUX Dev)
-      prediction = await axios.post(
-        "https://api.replicate.com/v1/predictions",
+      output = await replicate.run(
+        "black-forest-labs/flux-dev",
         {
-          model: "black-forest-labs/flux-dev",
           input: {
             prompt: prompt,
             output_format: "jpg",
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-            "Content-Type": "application/json",
           },
         }
       );
     }
 
-    const predictionUrl = prediction.data.urls.get;
+    const imageUrl = Array.isArray(output)
+      ? output[0]
+      : (output.url ? output.url() : output);
 
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    const response = await fetch(imageUrl);
+    const buffer = Buffer.from(await response.arrayBuffer());
 
-      const result = await axios.get(predictionUrl, {
-        headers: {
-          Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
-        },
-      });
+    res.setHeader("Content-Type", "image/jpeg");
+    return res.send(buffer);
 
-      if (result.data.status === "succeeded") {
-        const imageUrl = Array.isArray(result.data.output)
-          ? result.data.output[0]
-          : result.data.output;
-
-        const image = await axios.get(imageUrl, {
-          responseType: "arraybuffer",
-        });
-
-        res.setHeader("Content-Type", "image/jpeg");
-        return res.send(image.data);
-      }
-
-      if (result.data.status === "failed") {
-        return res.status(500).json({
-          error: "Image generation failed",
-        });
-      }
-    }
   } catch (err) {
-    console.error(err.response?.data || err.message);
+    console.error(err);
 
-    res.status(500).json({
-      error: err.response?.data || err.message,
+    return res.status(500).json({
+      error: err.message || "Generation failed",
     });
   }
 });
-
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
