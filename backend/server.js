@@ -14,11 +14,12 @@ const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-const HF_TOKEN = process.env.HF_TOKEN;
-app.get("/", (req, res) => {
-  res.json({ status: "DreamForge AI Backend Running (Hugging Face)" });
-});
+const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
+if (!REPLICATE_API_TOKEN) {
+  console.error("❌ REPLICATE_API_TOKEN not found");
+  process.exit(1);
+}
 app.post("/generate", upload.single("image"), async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -29,52 +30,89 @@ app.post("/generate", upload.single("image"), async (req, res) => {
       });
     }
 
-    let response;
+    let prediction;
 
     if (req.file) {
       // Image-to-Image
-      response = await axios.post(
-        "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-refiner-1.0",
-        req.file.buffer,
+      prediction = await axios.post(
+        "https://api.replicate.com/v1/predictions",
         {
-          params: {
+          version: "black-forest-labs/flux-dev",
+          input: {
             prompt: prompt,
-          },
+            image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+          }
+        },
+        {
           headers: {
-            Authorization: `Bearer ${HF_TOKEN}`,
-            "Content-Type": req.file.mimetype,
+            Authorization: `Token ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
           },
-          responseType: "arraybuffer",
         }
       );
     } else {
       // Text-to-Image
-      response = await axios.post(
-        "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-dev",
+      prediction = await axios.post(
+        "https://api.replicate.com/v1/predictions",
         {
-          inputs: prompt,
+          version: "black-forest-labs/flux-dev",
+          input: {
+            prompt: prompt
+          }
         },
         {
           headers: {
-            Authorization: `Bearer ${HF_TOKEN}`,
+            Authorization: `Token ${REPLICATE_API_TOKEN}`,
+            "Content-Type": "application/json",
           },
-          responseType: "arraybuffer",
         }
       );
     }
 
+    const predictionUrl = prediction.data.urls.get;
+
+    let result;
+
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      result = await axios.get(predictionUrl, {
+        headers: {
+          Authorization: `Token ${REPLICATE_API_TOKEN}`,
+        },
+      });
+
+      if (result.data.status === "succeeded") break;
+
+      if (result.data.status === "failed") {
+        throw new Error("Image generation failed.");
+      }
+    }
+
+    const imageUrl = result.data.output[0];
+
+    const image = await axios.get(imageUrl, {
+      responseType: "arraybuffer",
+    });
+
     res.setHeader("Content-Type", "image/png");
-    res.send(response.data);
+    res.send(image.data);
+
   } catch (err) {
     console.error(err.response?.data || err.message);
 
     res.status(500).json({
-      error: err.response?.data?.toString() || err.message,
+      error: err.response?.data || err.message,
     });
   }
 });
-
 const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.json({
+    status: "DreamForge AI Backend Running (Replicate)"
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
