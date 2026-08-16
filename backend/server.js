@@ -70,6 +70,13 @@ prediction = await axios.post(
     },
   }
 );
+  {
+    headers: {
+      Authorization: `Token ${REPLICATE_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+  }
+);
         {
           headers: {
             Authorization: `Token ${REPLICATE_API_TOKEN}`,
