@@ -16,10 +16,10 @@ const upload = multer({
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN;
 
-if (!REPLICATE_API_TOKEN) {
-  console.error("❌ REPLICATE_API_TOKEN not found");
-  process.exit(1);
-}
+app.get("/", (req, res) => {
+  res.json({ status: "DreamForge AI Backend Running (Replicate)" });
+});
+
 app.post("/generate", upload.single("image"), async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -33,53 +33,38 @@ app.post("/generate", upload.single("image"), async (req, res) => {
     let prediction;
 
     if (req.file) {
-      // Image-to-Image
+      // Image-to-Image (FLUX Kontext Pro)
       prediction = await axios.post(
         "https://api.replicate.com/v1/predictions",
         {
-model: "black-forest-labs/flux-kontext-pro",
-input_image:
+          model: "black-forest-labs/flux-kontext-pro",
           input: {
             prompt: prompt,
-            image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
-          }
+            input_image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+            output_format: "jpg",
+          },
         },
         {
           headers: {
-            Authorization: `Token ${REPLICATE_API_TOKEN}`,
+            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
             "Content-Type": "application/json",
           },
         }
       );
     } else {
-      // Text-to-Image
-prediction = await axios.post(
-  "https://api.replicate.com/v1/predictions",
-  {
-    model: "black-forest-labs/flux-kontext-pro",
-    input: {
-      prompt: prompt,
-      input_image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
-      output_format: "jpg"
-    }
-  },
-  {
-    headers: {
-      Authorization: `Token ${REPLICATE_API_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-  }
-);
-  {
-    headers: {
-      Authorization: `Token ${REPLICATE_API_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-  }
-);
+      // Text-to-Image (FLUX Dev)
+      prediction = await axios.post(
+        "https://api.replicate.com/v1/predictions",
+        {
+          model: "black-forest-labs/flux-dev",
+          input: {
+            prompt: prompt,
+            output_format: "jpg",
+          },
+        },
         {
           headers: {
-            Authorization: `Token ${REPLICATE_API_TOKEN}`,
+            Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
             "Content-Type": "application/json",
           },
         }
@@ -88,33 +73,34 @@ prediction = await axios.post(
 
     const predictionUrl = prediction.data.urls.get;
 
-    let result;
-
     while (true) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      result = await axios.get(predictionUrl, {
+      const result = await axios.get(predictionUrl, {
         headers: {
-          Authorization: `Token ${REPLICATE_API_TOKEN}`,
+          Authorization: `Bearer ${REPLICATE_API_TOKEN}`,
         },
       });
 
-      if (result.data.status === "succeeded") break;
+      if (result.data.status === "succeeded") {
+        const imageUrl = Array.isArray(result.data.output)
+          ? result.data.output[0]
+          : result.data.output;
+
+        const image = await axios.get(imageUrl, {
+          responseType: "arraybuffer",
+        });
+
+        res.setHeader("Content-Type", "image/jpeg");
+        return res.send(image.data);
+      }
 
       if (result.data.status === "failed") {
-        throw new Error("Image generation failed.");
+        return res.status(500).json({
+          error: "Image generation failed",
+        });
       }
     }
-
-    const imageUrl = result.data.output[0];
-
-    const image = await axios.get(imageUrl, {
-      responseType: "arraybuffer",
-    });
-
-    res.setHeader("Content-Type", "image/png");
-    res.send(image.data);
-
   } catch (err) {
     console.error(err.response?.data || err.message);
 
@@ -123,14 +109,9 @@ prediction = await axios.post(
     });
   }
 });
-const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.json({
-    status: "DreamForge AI Backend Running (Replicate)"
-  });
-});
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
