@@ -37,7 +37,8 @@ app.post("/generate", upload.single("image"), async (req, res) => {
       prediction = await axios.post(
         "https://api.replicate.com/v1/predictions",
         {
-          version: "black-forest-labs/flux-dev",
+model: "black-forest-labs/flux-kontext-pro"
+input_image:
           input: {
             prompt: prompt,
             image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
@@ -52,14 +53,23 @@ app.post("/generate", upload.single("image"), async (req, res) => {
       );
     } else {
       // Text-to-Image
-      prediction = await axios.post(
-        "https://api.replicate.com/v1/predictions",
-        {
-          version: "black-forest-labs/flux-dev",
-          input: {
-            prompt: prompt
-          }
-        },
+prediction = await axios.post(
+  "https://api.replicate.com/v1/predictions",
+  {
+    model: "black-forest-labs/flux-kontext-pro",
+    input: {
+      prompt: prompt,
+      input_image: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+      output_format: "jpg"
+    }
+  },
+  {
+    headers: {
+      Authorization: `Token ${REPLICATE_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+  }
+);
         {
           headers: {
             Authorization: `Token ${REPLICATE_API_TOKEN}`,
