@@ -37,7 +37,7 @@ app.post("/generate", upload.single("image"), async (req, res) => {
       prediction = await axios.post(
         "https://api.replicate.com/v1/predictions",
         {
-model: "black-forest-labs/flux-kontext-pro"
+model: "black-forest-labs/flux-kontext-pro",
 input_image:
           input: {
             prompt: prompt,
