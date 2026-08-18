@@ -1,4 +1,3 @@
-kcat > package.json << 'EOF'
 {
   "type": "module",
   "dependencies": {
@@ -10,4 +9,3 @@ kcat > package.json << 'EOF'
     "replicate": "^1.4.0"
   }
 }
-EOF

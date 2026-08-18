@@ -1,63 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DreamForge AI</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>DreamForge AI</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+  >
 </head>
+
 <body>
 
-<div class="container">
+<div class="background"></div>
 
-<h1>🎨 DreamForge AI</h1>
-<p>Create or Edit AI Images using Text and Images</p>
+<header class="header">
 
-<textarea id="prompt" placeholder="Example: A futuristic city at sunset"></textarea>
-<label>Negative Prompt</label>
-<label>📷 Upload Image</label>
-<input type="file" id="imageInput" accept="image/*">
-<button id="randomPromptBtn">🎲 Random Prompt</button>
-<textarea
-    id="negativePrompt"
-    placeholder="Example: blurry, low quality, watermark">
-</textarea>
-<select id="style">
-    <option value="realistic">Realistic</option>
-    <option value="anime">Anime</option>
-    <option value="3d">3D Render</option>
-    <option value="cyberpunk">Cyberpunk</option>
-    <option value="fantasy">Fantasy</option>
-</select>
+  <button id="menuBtn" class="round-btn">
+    <i class="fa-solid fa-sliders"></i>
+  </button>
 
-<select id="size">
-    <option value="512x512">512 × 512</option>
-    <option value="768x768">768 × 768</option>
-    <option value="1024x1024" selected>1024 × 1024</option>
-</select>
+  <div class="logo">
+    <span class="logo-star">✦</span>
+    DreamForge AI
+  </div>
 
-<button id="generateBtn">🚀 Generate Image</button>
+  <button id="settingsBtn" class="round-btn settings">
+    <i class="fa-solid fa-gear"></i>
+  </button>
 
-<div id="loading" style="display:none;">
-    ⏳ Generating Image...
+</header>
+
+
+<main id="main">
+
+  <div id="welcome" class="welcome">
+
+    <div class="welcome-icon">
+      ✦
+    </div>
+
+    <h2>What will you create?</h2>
+
+    <p>
+      Chat, create images, or transform an image with one prompt.
+    </p>
+
+  </div>
+
+
+  <section id="chat" class="chat-area"></section>
+
+</main>
+
+
+<!-- Upload preview -->
+
+<div id="previewContainer" class="preview-container">
+
+  <img id="uploadPreview" alt="Uploaded image">
+
+  <button id="removeImage" class="remove-image">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+
 </div>
-<div id="result" style="display:none;">
-    <img id="resultImage" alt="Generated Image">
-    <button id="downloadBtn">📥 Download</button>
+
+
+<!-- Prompt -->
+
+<div class="prompt-wrapper">
+
+  <div class="prompt-box">
+
+    <label class="prompt-action upload-action">
+
+      <input
+        type="file"
+        id="imageInput"
+        accept="image/*"
+        hidden
+      >
+
+      <i class="fa-regular fa-image"></i>
+
+    </label>
+
+
+    <button
+      id="attachBtn"
+      class="prompt-action"
+      type="button"
+    >
+      <i class="fa-solid fa-paperclip"></i>
+    </button>
+
+
+    <textarea
+      id="prompt"
+      rows="1"
+      placeholder="Message DreamForge AI..."
+    ></textarea>
+
+
+    <button
+      id="voiceBtn"
+      class="prompt-action"
+      type="button"
+    >
+      <i class="fa-solid fa-microphone"></i>
+    </button>
+
+
+    <button
+      id="generateBtn"
+      class="generate-btn"
+      type="button"
+    >
+
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+    </button>
+
+  </div>
+
+  <div class="hint">
+    DreamForge AI can chat, create and transform images.
+  </div>
+
 </div>
 
-<h2>🖼 Gallery</h2>
-<button id="clearGalleryBtn">🗑 Clear Gallery</button>
-<div id="gallery"></div>
 
-<h2>⭐ Favorites</h2>
-<button id="clearFavoritesBtn">🗑 Clear Favorites</button>
-<div id="favorites"></div>
+<!-- Loading -->
 
-<h3>History</h3>
-<div id="history"></div>
+<div id="loading" class="loading">
+
+  <div class="generation-card">
+
+    <div class="generation-animation">
+
+      <div class="orbit"></div>
+
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+    </div>
+
+    <h3 id="loadingTitle">
+      DreamForge AI
+    </h3>
+
+    <p id="loadingText">
+      Creating your result...
+    </p>
+
+  </div>
 
 </div>
+
+
+<div id="toast" class="toast">
+  Done
+</div>
+
 
 <script src="script.js"></script>
 
